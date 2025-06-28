@@ -26,14 +26,14 @@ public class UsuarioUITest {
 
     @BeforeAll
     static void setupClass() {
-        WebDriverManager.chromedriver().browserVersion("137").setup();
+        WebDriverManager.chromedriver().setup();
     }
 
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--headless");
+        options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
