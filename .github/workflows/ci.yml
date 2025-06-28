@@ -1,0 +1,127 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Set up Chrome
+      uses: browser-actions/setup-chrome@latest
+      with:
+        chrome-version: stable
+
+    - name: Build with Maven
+      run: mvn -B clean verify
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Unit Tests
+      run: mvn test -Dtest=UsuarioTest
+      continue-on-error: false
+
+    - name: Run Selenium Tests
+      run: |
+        # Start application (mock for testing)
+        echo "Starting application mock..."
+        python3 -m http.server 8080 &
+        PID=$!
+        
+        # Wait for server to start
+        sleep 5
+        
+        # Run tests
+        mvn test -Dtest=UsuarioUITest
+        
+        # Kill server
+        kill $PID
+      continue-on-error: false
+
+    - name: Set up JMeter
+      run: |
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
+        tar -xzf apache-jmeter-${JMETER_VERSION}.tgz
+      env:
+        JMETER_VERSION: 5.5
+
+    - name: Run JMeter Tests
+      run: |
+        apache-jmeter-5.5/bin/jmeter -n \
+          -t src/test/resources/jmeter/HealthTrackTest.jmx \
+          -l test-results.jtl \
+          -e -o jmeter-report \
+          -Jserver.host=localhost \
+          -Jserver.port=8080
+      continue-on-error: false
+
+    - name: SonarCloud Analysis
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }} \
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          target/surefire-reports/
+          target/failsafe-reports/
+          test-results.jtl
+          jmeter-report/
+        retention-days: 7
+
+    - name: Upload Coverage Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: target/site/jacoco/
+        retention-days: 7
+
+    - name: Check Test Results
+      if: always()
+      run: |
+        if [ -f target/surefire-reports/TEST-*.xml ]; then
+          echo "Test results available"
+          cat target/surefire-reports/TEST-*.xml
+        else
+          echo "No test results found"
+          exit 1
+        fi 
