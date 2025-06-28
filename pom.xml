@@ -27,6 +27,8 @@
         <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.language>java</sonar.language>
+        <!-- Disable Maven 4.0 warnings -->
+        <maven.project.sourceRoots.warningsDisabled>true</maven.project.sourceRoots.warningsDisabled>
     </properties>
 
     <dependencies>
@@ -121,7 +123,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.7.0.1746</version>
+                <version>3.4.0.905</version>
             </plugin>
         </plugins>
     </build>
