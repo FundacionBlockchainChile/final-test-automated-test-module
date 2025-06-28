@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -44,31 +45,48 @@ public class UsuarioUITest {
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(TIMEOUT));
         
-        // En lugar de conectarnos al servidor real, usamos data: URL para simular la página
+        // Improved HTML with better event handling and debugging
         driver.get("data:text/html;charset=utf-8," +
             "<html>" +
+            "<head><title>HealthTrack Test Page</title></head>" +
             "<body>" +
-            "<form id='registro-form'>" +
-            "<input type='text' id='nombre' />" +
-            "<input type='number' id='peso' />" +
-            "<button id='registrar'>Registrar</button>" +
+            "<form id='registro-form' onsubmit='return handleRegistro(event)'>" +
+            "<input type='text' id='nombre' required />" +
+            "<input type='number' id='peso' required step='0.1' />" +
+            "<button type='submit' id='registrar'>Registrar</button>" +
             "</form>" +
             "<div id='mensaje-exito' style='display:none'>Usuario registrado exitosamente</div>" +
-            "<form id='actualizar-form'>" +
-            "<input type='number' id='nuevo-peso' />" +
-            "<button id='actualizar'>Actualizar</button>" +
+            "<form id='actualizar-form' onsubmit='return handleActualizacion(event)'>" +
+            "<input type='number' id='nuevo-peso' required step='0.1' />" +
+            "<button type='submit' id='actualizar'>Actualizar</button>" +
             "</form>" +
             "<div id='peso-actual'></div>" +
+            "<div id='debug-log' style='margin-top: 20px; color: gray;'></div>" +
             "<script>" +
-            "document.getElementById('registro-form').onsubmit = function(e) {" +
-            "   e.preventDefault();" +
-            "   document.getElementById('mensaje-exito').style.display = 'block';" +
-            "};" +
-            "document.getElementById('actualizar-form').onsubmit = function(e) {" +
-            "   e.preventDefault();" +
-            "   document.getElementById('peso-actual').textContent = " +
-            "   document.getElementById('nuevo-peso').value;" +
-            "};" +
+            "function log(msg) {" +
+            "    const debugLog = document.getElementById('debug-log');" +
+            "    debugLog.innerHTML += msg + '<br>';" +
+            "    console.log(msg);" +
+            "}" +
+            "function handleRegistro(e) {" +
+            "    e.preventDefault();" +
+            "    log('Registro form submitted');" +
+            "    const nombre = document.getElementById('nombre').value;" +
+            "    const peso = document.getElementById('peso').value;" +
+            "    log('Nombre: ' + nombre + ', Peso: ' + peso);" +
+            "    document.getElementById('mensaje-exito').style.display = 'block';" +
+            "    log('Mensaje de éxito mostrado');" +
+            "    return false;" +
+            "}" +
+            "function handleActualizacion(e) {" +
+            "    e.preventDefault();" +
+            "    log('Actualización form submitted');" +
+            "    const nuevoPeso = document.getElementById('nuevo-peso').value;" +
+            "    log('Nuevo peso: ' + nuevoPeso);" +
+            "    document.getElementById('peso-actual').textContent = nuevoPeso;" +
+            "    log('Peso actualizado en la UI');" +
+            "    return false;" +
+            "}" +
             "</script>" +
             "</body>" +
             "</html>");
@@ -81,32 +99,75 @@ public class UsuarioUITest {
             WebElement pesoInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("peso")));
             WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("registrar")));
 
+            // Fill in the form
             nombreInput.sendKeys("Juan Pérez");
             pesoInput.sendKeys("70.5");
+
+            // Get debug log before submission
+            String beforeLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("Before submission: " + beforeLog);
+
+            // Submit the form
             submitButton.click();
 
+            // Wait for the success message
             WebElement mensaje = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("mensaje-exito")));
+
+            // Get debug log after submission
+            String afterLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("After submission: " + afterLog);
+
             assertTrue(mensaje.isDisplayed(), "El mensaje de éxito no se mostró correctamente");
         } catch (Exception e) {
-            throw new AssertionError("Error durante el registro de usuario: " + e.getMessage());
+            // Get final debug log in case of failure
+            String finalLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("Final debug log: " + finalLog);
+            throw new AssertionError("Error durante el registro de usuario: " + e.getMessage() + "\nDebug log: " + finalLog);
         }
     }
 
     @Test
     void testActualizacionPeso() {
         try {
+            // First register a user
             testRegistroUsuario();
 
+            // Now update the weight
             WebElement pesoInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("nuevo-peso")));
             WebElement actualizarButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("actualizar")));
+
+            // Get debug log before update
+            String beforeLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("Before update: " + beforeLog);
 
             pesoInput.sendKeys("72.5");
             actualizarButton.click();
 
+            // Wait for the weight to be updated
             WebElement pesoActual = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("peso-actual")));
+            
+            // Get debug log after update
+            String afterLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("After update: " + afterLog);
+
             assertEquals("72.5", pesoActual.getText(), "El peso no se actualizó correctamente");
         } catch (Exception e) {
-            throw new AssertionError("Error durante la actualización de peso: " + e.getMessage());
+            // Get final debug log in case of failure
+            String finalLog = ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('debug-log').innerHTML"
+            ).toString();
+            System.out.println("Final debug log: " + finalLog);
+            throw new AssertionError("Error durante la actualización de peso: " + e.getMessage() + "\nDebug log: " + finalLog);
         }
     }
 
