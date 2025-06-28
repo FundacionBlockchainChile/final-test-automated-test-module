@@ -65,6 +65,12 @@ jobs:
       env:
         JMETER_VERSION: 5.5
 
+    - name: Start Application
+      run: |
+        mvn spring-boot:run &
+        echo "Waiting for application to start..."
+        sleep 30  # Give the application time to start
+
     - name: Run JMeter Tests
       run: |
         apache-jmeter-5.5/bin/jmeter -n \
@@ -74,6 +80,11 @@ jobs:
           -Jserver.host=localhost \
           -Jserver.port=8080
       continue-on-error: false
+
+    - name: Stop Application
+      if: always()
+      run: |
+        pkill -f "spring-boot:run" || true
 
     - name: SonarQube Analysis
       env:
