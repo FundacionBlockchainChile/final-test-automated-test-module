@@ -17,10 +17,8 @@
         <jmeter.version>5.5</jmeter.version>
         <jacoco.version>0.8.8</jacoco.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- SonarCloud Configuration -->
-        <sonar.organization>fundacionblockchainchile</sonar.organization>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectKey>FundacionBlockchainChile_final-test-automated-test-module</sonar.projectKey>
+        <!-- SonarQube Configuration -->
+        <sonar.host.url>http://ec2-35-171-234-181.compute-1.amazonaws.com:9000</sonar.host.url>
         <!-- Java Configuration -->
         <sonar.java.source>11</sonar.java.source>
         <sonar.java.target>11</sonar.java.target>
@@ -135,7 +133,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.host.url>http://ec2-35-171-234-181.compute-1.amazonaws.com:9000</sonar.host.url>
             </properties>
         </profile>
     </profiles>

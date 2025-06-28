@@ -75,14 +75,13 @@ jobs:
           -Jserver.port=8080
       continue-on-error: false
 
-    - name: SonarCloud Analysis
+    - name: SonarQube Analysis
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }} \
-          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+          -Dsonar.host.url=http://ec2-35-171-234-181.compute-1.amazonaws.com:9000
 
     - name: Upload Test Results
       if: always()
