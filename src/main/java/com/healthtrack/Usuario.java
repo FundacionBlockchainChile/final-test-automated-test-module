@@ -18,8 +18,8 @@ public class Usuario {
     }
 
     public void actualizarPeso(double nuevoPeso) {
-        // ERROR: En lugar de asignar el nuevo peso, se está restando 1kg.
-        this.peso -= 1;
+        // Corregido: Asignar el nuevo peso en lugar de restar 1kg
+        this.peso = nuevoPeso;
     }
 
     public void mostrarInformacion() {
