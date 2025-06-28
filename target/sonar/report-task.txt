@@ -1,0 +1,6 @@
+projectKey=com.healthtrack:weight-tracker
+serverUrl=http://ec2-35-171-234-181.compute-1.amazonaws.com:9000
+serverVersion=25.6.0.109173
+dashboardUrl=http://ec2-35-171-234-181.compute-1.amazonaws.com:9000/dashboard?id=com.healthtrack%3Aweight-tracker
+ceTaskId=54e4627b-e4bc-4895-98df-9ff18998353c
+ceTaskUrl=http://ec2-35-171-234-181.compute-1.amazonaws.com:9000/api/ce/task?id=54e4627b-e4bc-4895-98df-9ff18998353c

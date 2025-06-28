@@ -1,6 +1,7 @@
 package com.healthtrack;
 
 public class Usuario {
+    private long id;
     private String nombre;
     private double peso;
 
@@ -15,6 +16,18 @@ public class Usuario {
 
     public double getPeso() {
         return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public void actualizarPeso(double nuevoPeso) {
