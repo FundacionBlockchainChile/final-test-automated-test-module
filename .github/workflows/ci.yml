@@ -53,20 +53,9 @@ jobs:
       continue-on-error: false
 
     - name: Run Selenium Tests
-      run: |
-        # Start application (mock for testing)
-        echo "Starting application mock..."
-        python3 -m http.server 8080 &
-        PID=$!
-        
-        # Wait for server to start
-        sleep 5
-        
-        # Run tests
-        mvn test -Dtest=UsuarioUITest
-        
-        # Kill server
-        kill $PID
+      run: mvn test -Dtest=UsuarioUITest -Dselenium.tests.enabled=true
+      env:
+        DISPLAY: :99
       continue-on-error: false
 
     - name: Set up JMeter
